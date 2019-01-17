@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>test</title>
+
+  <!--
+
+  /*
+  ゲームの始め方。
+
+  まず、modeボタンを一回押します。
+  つぎに、startボタンを一回押します。ゲームが始まります。
+  */
+
+
+  /*現在確認しているバグ
+
+  ２：一度ゲームをした後にmodeボタンを押して時計モードに戻り、再びゲームモードに移行するとスタートボタンを押していないのにカウントダウンが始まっている。
+
+
+  */
+
+  １ 機能の説明
+  ２ 開発の同期
+  ３ 工夫した点・苦労した点
+
+  今回の最終プロジェクトとして、私はスマートウォッチの開発に取り組みました。
+　  まずは、私が開発したスマートウォッチがどのようなものであるかを説明します。
+  今回私が開発したスマートウォッチは通常のアナログ時計モードに加えて、フラッシュ暗算ゲームも行うことができます。
+  最初は時計モードで表示されますが、MODEボタンを押すと、フラッシュ暗算ゲームモードに移行します。
+  startボタンを押すことで、３０秒間のカウントダウンタイマーが起動し、テキストエリアに問題が出題されます。
+  ユーザーはその答えを文字盤のボタンで打ち込み、ans(answer)ボタンを押し、回答を確定します。
+  なお、一問につき一回のみ回答可能です。
+  ansボタンを押す前であれば、間違った数字を入力してしまっってもdel（delete）ボタンで一文字ずつ削除することができます。
+  ３０秒間のゲームが終わると成績が表示されます。
+  一度ゲームを行うと
+
+  このようなスマートウォッチの開発を行なった動機は、以下の２点です。
+  　第一に、CSSやHTMLの知識をしっかりと定着させたかったからです。
+  私は普段からプログラミングを行うので、javascriptに関しては問題なかったのですが、CSSやhtmlに関しては知識が曖昧な部分が多々ありました。
+  そのため、html要素の操作や装飾が多く必要とされ、HTMLやCSSに関する知識を定着させれそうなアナログ時計を選びました。
+　　第二に、デジタルで時計を作るのだから、デジタルでしかできないような遊びのある機能を備えた時計を作りたかったからです。
+  そこで、文字盤の１２個の数字をボタンで表現し、それらを押すことで実現できるようなゲームの一つとして思いついたのが、フラッシュ暗算ゲームです。
+  ボタンの数をむやみに増やしたくはなかったので、負の数を含むことはできませんでしたが、普通のアナログ時計とは一味違う時計ができました。
+
+
+  今回私がこのスマートウォッチを開発するにあたって工夫した点・苦労した点は以下のつです。
+  　まず、ボタンの数は文字盤の１２個に加え、最小限のものに抑えることです。
+  見た目のデザインとユーザーにとっての使いやすやを考えれば、ボタンが少なく、それぞれの機能がはっきりしていた方が良いでしょう。
+  そこで、モード変換の際にボタンの役割を変えることで、ボタンの数を最小限に保ちました。
+  こうしたモード変換の際に、整合性を保ちながらhtml要素を削除・追加できる仕組みを作るのが大変でした。
+　　次に、後から様々な機能を簡単に追加できるように、モードの移行を行いやすいようなコードを書きました。
+  今回私が開発したのはフラッシュ暗算ゲームでしたが、他にもタイマーやカレンダー、簡易計算機など１２このボタンで実現できそうなアプリケーションは多くあります。
+  こうした新たなアプリケーションを追加できるように、全てのモードに共通する仕組みやデザインをなるべく抽象化するように心がけました。
+  こうした抽象化にも多くの時間が必要でした。
+    最後に、わかりやすいコードの説明分を書く、あるいは、他者に説明しやすいようなコードを書くことです。
+  私はこれまで自分の書いたコードを他人に説明するという経験をそれほどしてきませんでした。
+  というよりも、最初に設計図を思い描いてからコードを書くのではなく、とりあえずいろいろ書いてみて最終的に動くようにする、という書き方をしてきました
+  そのため、私はわかるが、他者にはなかなかわかりずらいコードになってしまうことがしばしばでした。
+  さらに、そうした書き方によって、非常に多くの時間がかかり、最終的に動かないこともありました。
+  そこで、今回は事前にどのような機能が必要で、どのような関数を用意すれば良いのかをじっくり考えました。
+  その結果、書く時間も、書く量も減り、他人にもわかりやすいコードになったと思います。
+
+
+-->
+
+
+<style>
+
+  #clockBox{
+    position: relative;
+    width: 500px;
+    height: 500px;
+    margin: 100px auto;
+    background:　white;
+  }
+
+  .num{
+    position: absolute;
+    background: white;
+    width: 38px;
+    height: 38px;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    font-size: 22px;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+  }
+
+  #mode{
+    position: absolute;
+    background: white;
+    width: 52px;
+    height: 20px;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    font-size: 10px;
+    border-radius: 10%;
+    -webkit-border-radius: 10%;
+    -moz-border-radius: 10%;
+  }
+
+  #startButton{
+
+    position: absolute;
+    background: white;
+    width: 52px;
+    height: 20px;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    font-size: 10px;
+    border-radius: 10%;
+    -webkit-border-radius: 10%;
+    -moz-border-radius: 10%;
+  }
+
+
+
+
+  canvas.clockBox{
+    margin: 300px;
+    background: #ff1493;
+  }
+
+
+</style>
+
+</head>
+
+<body>
+  <div id="clockBox">
+    <canvas id="clockid"></canvas>
+
+  </div>
+
+</body>
+
+<!-- javascriptの目次
+
+１　グローバル変数とwindow.onload関数
+
+２　基本的なボタンの配置、キャンバスの設定とモード変換
+
+- set_buttons()
+- canvas_config()
+- changeMode(modeValue)
+
+３　時計モードの実装
+
+- clockMode()
+- clockMode_buttons_config()
+- clock()
+
+４　ゲームモードの実装
+
+- gameMode()
+- gameMode_buttons_config()
+- start()
+- init()
+- showQuesion()
+- select()
+- showtimer()
+- display_Answer()
+- del()
+- check()
+- startTimer()
+- showPassage()
+- showResult()
+- push_backButton()
+- finishDisplay()
+
+-->
+
+
+
+<script>
+  /*１ グローバル変数とwindow.onload関数*/
+
+
+
+  var flag_mode = 0;       //modeのフラグ
+  var clockInterval = null;       //setInterval(clock)の返り値。intervalの解除に使う
+  var clockBox = document.getElementById('clockBox');
+  var clockBox_innerHTML = [];
+  var message;   //ユーザーが入力した解を保存する変数
+  var x1;       //問題の一つ目の数字（０から１００までの整数乱数）
+  var x2;       //問題の二つ目の数字（０から１００までの整数乱数）
+  var sign;       //問題の演算子（+,-,*のいずれか）
+  var correctAnswer;        //問題の正しい解
+  var correct;        //ユーザーの正解数（非負整数）
+  var wrong;          //ユーザーの誤答数（非負整数）
+  var score;       //ユーザーの正答率（パーセント）
+  var timer;        //gameモード時のタイマー
+  var check;
+  var countdown
+
+
+
+  //ページを読み込んだ際には、clockモードで表示
+  window.onload = function() {
+    set_buttons();
+    clockMode();
+  };
+
+
+
+/*２　基本的なボタンの配置、キャンバスの設定とモード変換*/
+
+
+  //基本的な文字盤とボタンを配置
+  function set_buttons(){
+
+    var clockBox_width = 500;
+    var clockBox_height = 500;
+
+
+    //clockBoxの半径を計算
+    var centerX = clockBox_width / 2;
+    var centerY = clockBox_height / 2;
+
+
+
+    //num要素数から角度を計算
+    var angle = 360 / 12;
+
+
+    //円形に配置
+
+
+    for (var i = 0; i < 12; i++) {
+
+      var radian = i * (Math.PI / 6);
+      var id = "button" + String(i);
+
+      var x = (centerX / 5) + (clockBox_width / 4) * Math.sin(radian) + 83;
+      var y = (centerY / 5) - (clockBox_height / 4) * Math.cos(radian) + 83;
+
+      var xval = String(x) + "px";
+      var yval = String(y) + "px";
+
+      var button = document.createElement('input')
+      button.setAttribute("type","button");
+      button.setAttribute("class", "num");
+      button.setAttribute("id", String(id));
+
+      //button.setAttribute("onclick", alert(i));
+
+      if (i == 0) {
+        button.setAttribute("value", "12");
+
+      }
+      else {
+        button.setAttribute("value", i);
+
+      }
+
+      clockBox.appendChild(button);
+
+      var element = document.getElementById(id);
+      element.style.position = 'absolute';
+      element.style.left = xval;
+      element.style.top = yval;
+
+      clockBox_innerHTML.push(button);
+
+
+    }
+
+    var mode_button = document.createElement('input')
+    mode_button.setAttribute("type","button");
+    mode_button.setAttribute("size","10");
+    mode_button.setAttribute("value", "mode");
+    mode_button.setAttribute("onclick", "changeMode()");
+    mode_button.setAttribute("id", "mode");
+    clockBox.appendChild(mode_button);
+
+    var mode_button_style = document.getElementById("mode");
+    mode_button_style.style.position = 'absolute';
+    mode_button_style.style.left = "126px";
+    mode_button_style.style.top = "210px";
+
+    clockBox_innerHTML.push(mode_button);
+
+    /*
+    clockBox_innerHTMLには１２から１１までのボタン、modeボタンの１３この要素が入っている
+    */
+
+  }
+
+  //モードに共通な時計の外枠の描画
+  function canvas_config(canvas,ctx) {
+
+    // 各種設定
+    canvas.width = 300;
+    canvas.height = 300;
+    var w = canvas.width;
+    var h = canvas.height;
+    var center = {x : w / 2, y : h / 2};
+
+    // 文字盤の数字の中心までの半径(canvas の半分より少し小さく)
+    var rads = w / 2 * 0.8;
+
+    ctx.clearRect(0, 0, w, h);
+
+
+    // 時計の外側の丸
+
+    ctx.save();
+    ctx.strokeStyle = "rgb(255, 255, 255)";
+    ctx.lineWidth   = 1;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#000";
+    ctx.translate(center.x,center.y);
+
+    // /* グラデーション領域をセット */
+    // // translateで座標を移動しているためグラデーションの始終を調整
+
+
+    var grad  = ctx.createLinearGradient(0,-h/2,0,h/2);
+
+    // /* グラデーションをfillStyleプロパティにセット */
+    ctx.fillStyle = 'rgb(192, 80, 77)';
+    ctx.beginPath();
+    ctx.arc(0, 0, (w/2)-5, 0, Math.PI * 2, false);
+    ctx.fill();
+    ctx.stroke();
+
+
+    /* circle white */
+    ctx.beginPath();
+    ctx.arc(0, 0, 100, 0, Math.PI * 2, false);
+    ctx.fillStyle   ="#FFF";
+    ctx.fill();
+
+    ctx.restore();
+
+    //  中心を移動
+    ctx.translate(center.x,center.y);
+
+
+  }
+
+
+
+  function changeMode(){
+
+    if (flag_mode == 0) {
+
+      clearInterval(clockInterval);
+      gameMode_buttons_config();
+      gameMode();
+      flag_mode = 1;
+
+
+    }
+
+    else if (flag_mode == 1) {
+
+      clockMode_buttons_config();
+      clockMode();
+      flag_mode=0;
+
+    }
+
+  }
+
+
+  //時計モード時の文字盤の設定
+  function clockMode_buttons_config(){
+
+
+    clockBox.removeChild(clockBox.children[14])
+
+    clockBox_innerHTML[0].value = 12;           //0を12に書き換える
+    clockBox_innerHTML[10].value = 10;        //delボタンを１０に書き換える
+    clockBox_innerHTML[11].value = 11;        //ansボタンを１１に書き換える
+
+    clockBox_innerHTML[10].style.fontSize = "22px";        //delのフォントサイズを変更
+    clockBox_innerHTML[11].style.fontSize = "22px";        //ansのフォントサイズを変更
+
+
+
+
+
+  }
+
+
+
+
+
+
+  var clock = function(){
+    var now = new Date();
+
+    var canvas = document.getElementById("clockid");
+    var ctx = canvas.getContext('2d');
+    ctx.save();
+
+    canvas_config(canvas,ctx);
+
+    //以下はclockモード特有のcanvas設定。分の線、時間の線、長針、短針、秒針、中心の丸。
+
+    // 分の線
+    ctx.save();
+    ctx.strokeStyle = "rgb(204,204,204)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var i=0;i<60;i++){
+      if (i%5!=0) {
+        ctx.moveTo(100,0);
+        ctx.lineTo(95,0);
+      }
+      ctx.rotate(Math.PI/30); //回転を細かくする
+    }
+    ctx.stroke();
+
+    // 時間の線
+    ctx.strokeStyle =　"rgb(204,204,204)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (var i=0;i<60;i++){
+      ctx.moveTo(100,0);
+      ctx.lineTo(90,0);
+      ctx.rotate(Math.PI/6);　//回転を大きくする
+    }
+    ctx.stroke();
+    ctx.restore();
+
+
+    // 針の設定
+    var sec = now.getSeconds();
+    var min = now.getMinutes();
+    var hr = now.getHours();
+    hr = hr>=12 ? hr-12 : hr; // 12以上なら「hr-12」、それ以外なら「hr」
+    ctx.fillStyle = "#999";
+
+    // 短針の描画
+    ctx.save();
+    ctx.rotate( hr*(Math.PI/6) + (Math.PI/360)*min + (Math.PI/21600)*sec )
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = "rgb(0, 0, 0)";
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = "#666";
+    ctx.beginPath();
+    ctx.moveTo(-3,25);
+    ctx.lineTo(0,-70);
+    ctx.lineTo(3,25);
+    ctx.stroke();
+    ctx.restore();
+
+    // 長針の描画
+    ctx.save();
+    ctx.rotate( (Math.PI/30)*min + (Math.PI/1800)*sec )
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgb(0, 0, 0)";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#999";
+    ctx.beginPath();
+    ctx.moveTo(-2,25);
+    ctx.lineTo(0,-105);
+    ctx.lineTo(2,25);
+    ctx.stroke();
+    ctx.restore();
+
+    // 秒針の描画
+    ctx.save();
+    ctx.rotate(sec * Math.PI/30);
+    ctx.strokeStyle = "rgb(207, 170, 77)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0,30);
+    ctx.lineTo(0,-100);
+    ctx.stroke();
+    ctx.restore();
+
+    // 中心の丸
+    ctx.save();
+    ctx.beginPath();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgb(207, 170, 77)";
+    ctx.fillStyle   = "rgb(186, 168, 132)";
+    ctx.arc(0,0,7,0,Math.PI*2,true);
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
+
+  }
+
+  var clockMode = function(){
+
+
+    clock();
+    clockInterval = setInterval('clock();',1000);
+
+  }
+
+
+  var gameMode = function(){
+
+    game()
+
+  }
+
+  // gameモードのcanvas設定
+  var game = function(){
+
+    var now = new Date();
+
+    var canvas = document.getElementById("clockid");
+    var ctx = canvas.getContext('2d');
+    ctx.save();
+
+    canvas_config(canvas, ctx);
+
+  }
+
+
+
+  function gameMode_buttons_config(){
+
+    clockBox_innerHTML[0].value = 0;           //12を0に書き換える
+    clockBox_innerHTML[10].value = "del";        //10をdelボタンに書き換える
+    clockBox_innerHTML[11].value = "ans";        //11をansボタンに書き換える
+
+    clockBox_innerHTML[10].style.fontSize = "15px";        //delのフォントサイズを変更
+    clockBox_innerHTML[11].style.fontSize = "15px";        //ansのフォントサイズを変更
+
+
+
+    //テキストエリアとスタートボタンを作成
+
+    var form1 = document.createElement('form')
+    form1.setAttribute("name","display");
+    form1.setAttribute("id","form1");
+    clockBox.appendChild(form1);
+    var form1_obj = document.getElementById('form1');
+
+    var textarea1 = document.createElement('textarea')
+    textarea1.setAttribute("name","question");
+    textarea1.setAttribute("id","text1");
+    textarea1.setAttribute("rows","2");
+    textarea1.setAttribute("cols","15");
+    form1_obj.appendChild(textarea1);
+
+    var text1_obj = document.getElementById('text1');
+    text1_obj.style.position = 'absolute';
+    text1_obj.style.left = "85px";
+    text1_obj.style.top = "100px";
+
+    var textarea2 = document.createElement('textarea')
+    textarea2.setAttribute("name","answer");
+    textarea2.setAttribute("id","text2");
+    textarea2.setAttribute("rows","2");
+    textarea2.setAttribute("cols","15");
+    form1_obj.appendChild(textarea2);
+
+    var text2_obj = document.getElementById('text2');
+    text2_obj.style.position = 'absolute';
+    text2_obj.style.left = "85px";
+    text2_obj.style.top = "150px";
+
+    var startButton = document.createElement('input')
+    startButton.setAttribute("type","button");
+    startButton.setAttribute("id","startButton");
+    startButton.setAttribute("value","start");
+    startButton.setAttribute("onclick","start()");
+    startButton.setAttribute("rows","2");
+    startButton.setAttribute("cols","15");
+    form1_obj.appendChild(startButton);
+
+    var startButton_obj = document.getElementById('startButton');
+    startButton_obj.style.position = 'absolute';
+    startButton_obj.style.left = "125px";
+    startButton_obj.style.top = "60px";
+
+    var gameTimer = document.createElement('p')
+    gameTimer.setAttribute("id","gameTimer");
+    form1_obj.appendChild(gameTimer);
+
+    var gameTimer_obj = document.getElementById('gameTimer');
+    gameTimer_obj.style.position = 'absolute';
+    gameTimer_obj.style.left = "140px";
+    gameTimer_obj.style.top = "60px";
+    //document.getElementById('gameTimer').innerHTML = 30;
+
+    timer = document.getElementById('gameTimer').innerHTML;
+    document.getElementById('gameTimer').innerHTML = 30;
+    timer = 30;
+
+
+    //onclickの設定
+
+    var clockBox_children = clockBox.children;
+    clockBox_children[1].setAttribute("onclick", "display_Answer(0)");
+    clockBox_children[2].setAttribute("onclick", "display_Answer(1)");
+    clockBox_children[3].setAttribute("onclick", "display_Answer(2)");
+    clockBox_children[4].setAttribute("onclick", "display_Answer(3)");
+    clockBox_children[5].setAttribute("onclick", "display_Answer(4)");
+    clockBox_children[6].setAttribute("onclick", "display_Answer(5)");
+    clockBox_children[7].setAttribute("onclick", "display_Answer(6)");
+    clockBox_children[8].setAttribute("onclick", "display_Answer(7)");
+    clockBox_children[9].setAttribute("onclick", "display_Answer(8)");
+    clockBox_children[10].setAttribute("onclick", "display_Answer(9)");
+    clockBox_children[11].setAttribute("onclick", "del()");
+    clockBox_children[12].setAttribute("onclick", "check()");
+
+
+  }
+
+
+  function start(){
+    init_var();
+    correctAnswer = display_Question();
+    startTimer();
+  }
+
+
+  //ゲームがスタートした時の各変数の初期設定
+  function init_var(){
+    message = '';
+    sign = null;
+    correct = 0;
+    wrong = 0;
+  }
+
+  function display_Question(){
+
+    var question = "";
+
+
+    x1 = parseInt(Math.random() * 100);
+
+    x2 = parseInt(Math.random() * 100);
+
+
+    //select関数を実行し、演算子を取得
+    sign = select(Math.random() * 10);
+
+
+    //正しい解を計算する部分。signの値で場合分け。
+
+    if (sign == "+"){
+      display.question.value = String(x1) + " + " + String(x2);
+      return x1 + x2;
+    }
+
+    else if (sign == "-"){
+
+      //正しい解が負の値を取らないように調整
+
+      if (x1 >= x2) {
+
+        display.question.value = String(x1) + " - " + String(x2);
+        return x1 - x2;
+      }
+
+      else if ( x1 < x2) {
+
+        display.question.value = String(x2) + " - " + String(x1);
+        return x2 - x1;
+      }
+
+    }
+
+    else if (sign == "*"){
+
+      display.question.value = String(x1) + " * " + String(x2);
+      return x1 * x2;
+    }
+
+
+  }
+
+
+  //演算子をランダムに選択する関数
+  function select(random){
+
+    if (random < 4.0){
+      sign = "+";
+      return sign;
+    }
+
+    else if (random >= 4.0 && random < 8.0) {
+      sign = "-";
+      return sign;
+
+    }
+
+    else if(random >= 8.0){
+      sign = "*";
+      return sign;
+    }
+
+  }
+
+
+  // ユーザーが入力した解を表示する関数
+  function display_Answer(num){
+    var answer = document.display.answer.value;
+    message += String(num)        //グローバル変数messageに押されたボタンの数を文字列として加える
+    answer = message;         //表示する
+    display.answer.value = answer;
+  }
+
+
+  // 一文字削除する関数
+  function del(){
+    var answer = document.display.answer.value;
+    message = message.slice( 0, -1 );       //グローバル変数messageに格納された解を後ろから一文字削除する
+    answer = message;       //表示する
+    display.answer.value = answer;
+  }
+
+
+  //解の判定をして、成績を記憶する関数
+  function check(){
+    var answer = document.display.answer.value;       //ユーザーの解を取得
+
+
+    //正しい解とユーザーの解が一致するか判定する
+    if (correctAnswer == answer){        //正解したら、
+      correct++;        //ユーザーの正解数を+1する
+    }
+    else {
+      wrong++;
+    }
+
+    //ここからは次の問題の処理
+    correctAnswer = display_Question();       //正しい解をdisplay_Question()で更新（display_Question()の返り値は正しい解）
+    message = '';       //ユーザーの解を空にする
+
+  }
+
+
+  //以下はカウントダウンタイマーの実装
+
+  // 繰り返し処理の開始
+  function startTimer() {
+    countdown = setInterval('showPassage()',1000);
+  }
+
+  // 繰り返し処理の中身
+  function showPassage() {
+
+    if (timer > 0) {
+
+      timer--;
+      document.getElementById('gameTimer').innerHTML = timer;
+      if (timer == 0) {
+        clearInterval(countdown)
+        alert("time up")
+        finishDisplay();
+        return;
+      }
+    }
+  }
+
+  function finishDisplay(){
+
+    var question = document.getElementById('text1').innerHTML;
+
+    var answer = document.display.answer.value;
+
+
+    //正答率を取得
+    // score = parseInt(correct / (correct + wrong)) * 100;
+    score = parseInt(correct / (correct + wrong) * 100);
+
+
+    question = " Your Accuracy is " + String(score) + " % ";
+    display.question.value = question;
+
+
+    //正答率に応じて表示する感想を変更する
+    if (score < 50) {
+      answer = "try again..";
+      display.answer.value = answer;
+    }
+
+    else if (score >= 50 && score < 70) {
+      answer = "good job."
+      display.answer.value = answer;
+    }
+
+    else if (score >=70 && score < 90) {
+      answer = "well done!"
+      display.answer.value = answer;
+    }
+
+    else if (score >= 90 && score < 100){
+      answer = "excellent!!"
+      display.answer.value = answer;
+    }
+
+    else if (score = 100){
+      answer = "perfect!!!";
+      display.answer.value = answer;
+    }
+
+    gameMode();
+
+  }
+
+
+
+
+
+
+
+
+</script>
+</html>
